@@ -63,12 +63,3 @@ const userRegister = async (
     return next(createHttpError(500, 'error while signing jwt'));
   }
 };
-
-const loginUser = async (req: Request, res: Response, next: NextFunction) => {
-  // const {email, password} =
-
-  res.json({ message: 'OKAY....' });
-  // res.json({ accessToken: token });
-};
-
-export { userRegister, loginUser };
