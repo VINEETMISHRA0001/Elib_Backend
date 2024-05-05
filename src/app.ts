@@ -3,8 +3,12 @@ import createHttpError, { HttpError } from 'http-errors';
 import { config } from './config/config';
 import { globalErrorHanlder } from './middlewares/globalErrorHandler';
 import userRouter from './users/userRouter';
+import morgan from 'morgan';
 
 const app = express();
+app.use(express.json());
+
+app.use(morgan('dev'));
 
 // Routes
 
