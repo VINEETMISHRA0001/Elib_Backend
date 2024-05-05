@@ -63,3 +63,39 @@ const userRegister = async (
     return next(createHttpError(500, 'error while signing jwt'));
   }
 };
+
+const loginUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      const error = createHttpError(400, 'All fields are required');
+
+      return next(error);
+    }
+
+    const user = await userModel.findOne({ email });
+
+    if (!user) {
+      return next(createHttpError(404, 'Email not exists'));
+    }
+
+    const isMatched = await bcrypt.compare(password, user.password);
+
+    if (!isMatched) {
+      return next(createHttpError(401, 'Email or Password is incorrect'));
+    }
+
+    const token = sign({ sub: user._id }, config.jwtSecret as string, {
+      expiresIn: '7d',
+    });
+
+    // response
+    res.status(201).json({ accessToken: token });
+
+    ////////////////////////
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export { userRegister, loginUser };
