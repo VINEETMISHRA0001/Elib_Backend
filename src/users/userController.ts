@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { globalErrorHanlder } from '../middlewares/globalErrorHandler';
 import createHttpError from 'http-errors';
+import bcrypt from 'bcrypt';
 import userModel from './userModel';
 
 const userRegister = async (
@@ -24,6 +25,11 @@ const userRegister = async (
   if (!name || !email || !password) {
     return next(error);
   }
+
+  // hashed password
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
   // process / logic
 
   // response
