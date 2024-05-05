@@ -3,6 +3,8 @@ import { globalErrorHanlder } from '../middlewares/globalErrorHandler';
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
 import userModel from './userModel';
+import { sign } from 'jsonwebtoken';
+import { config } from '../config/config';
 
 const userRegister = async (
   req: Request,
@@ -32,9 +34,21 @@ const userRegister = async (
 
   // process / logic
 
+  const newUser = await userModel.create({
+    name,
+    email,
+    password: hashedPassword,
+  });
+
+  // token generation (generating jwt tokens)
+
+  const token = sign({ sub: newUser._id }, config.jwtSecret as string, {
+    expiresIn: '7d',
+  });
+
   // response
 
-  res.json({ message: 'Successfully created a new user' });
+  res.json({ accessToken: token });
 };
 
 export { userRegister };
