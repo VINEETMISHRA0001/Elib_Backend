@@ -58,11 +58,17 @@ const userRegister = async (
     });
 
     // response
-
-    res.json({ accessToken: token });
+    res.status(201).json({ accessToken: token });
   } catch (error) {
     return next(createHttpError(500, 'error while signing jwt'));
   }
 };
 
-export { userRegister };
+const loginUser = async (req: Request, res: Response, next: NextFunction) => {
+  // const {email, password} =
+
+  res.json({ message: 'OKAY....' });
+  // res.json({ accessToken: token });
+};
+
+export { userRegister, loginUser };
