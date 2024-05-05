@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { globalErrorHanlder } from '../middlewares/globalErrorHandler';
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
+import { User } from './userTypes';
 import userModel from './userModel';
 import { sign } from 'jsonwebtoken';
 import { config } from '../config/config';
@@ -17,38 +18,51 @@ const userRegister = async (
 
   const error = createHttpError(400, 'All fields are required');
 
-  const user = await userModel.findOne({ email });
+  try {
+    const user = await userModel.findOne({ email });
 
-  if (user) {
-    const error = createHttpError(400, 'USer Already exists with this email');
-    return next(error);
-  }
+    if (user) {
+      const error = createHttpError(400, 'USer Already exists with this email');
+      return next(error);
+    }
 
-  if (!name || !email || !password) {
-    return next(error);
+    if (!name || !email || !password) {
+      return next(error);
+    }
+  } catch (error) {
+    return next(createHttpError(500, 'Error While Getting User...'));
   }
 
   // hashed password
-
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // process / logic
+  let newUser: User;
 
-  const newUser = await userModel.create({
-    name,
-    email,
-    password: hashedPassword,
-  });
+  try {
+    // process / logic
 
-  // token generation (generating jwt tokens)
+    newUser = await userModel.create({
+      name,
+      email,
+      password: hashedPassword,
+    });
 
-  const token = sign({ sub: newUser._id }, config.jwtSecret as string, {
-    expiresIn: '7d',
-  });
+    // token generation (generating jwt tokens)
+  } catch (error) {
+    return next(createHttpError(500, 'Error While Creating User..'));
+  }
 
-  // response
+  try {
+    const token = sign({ sub: newUser._id }, config.jwtSecret as string, {
+      expiresIn: '7d',
+    });
 
-  res.json({ accessToken: token });
+    // response
+
+    res.json({ accessToken: token });
+  } catch (error) {
+    return next(createHttpError(500, 'error while signing jwt'));
+  }
 };
 
 export { userRegister };
