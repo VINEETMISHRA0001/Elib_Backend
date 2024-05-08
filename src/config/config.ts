@@ -10,6 +10,7 @@ const _config = {
   cloudName: process.env.CLOUDINARY_CLOUD,
   cloudSecret: process.env.CLOUDINARY_SECRET,
   cloudKey: process.env.CLOUDINARY_API_KEY,
+  frontend_url: process.env.FRONTEND_URL,
 };
 
 export const config = Object.freeze(_config); // prevents overwrite
