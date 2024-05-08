@@ -67,13 +67,14 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
 
 const updateBook = async (req: Request, res: Response, next: NextFunction) => {
   const { title, description, genre } = req.body;
-  const bookId = req.params.bookId;
+  const bookId = req.params.id;
 
   const book = await bookModel.findOne({ _id: bookId });
 
   if (!book) {
     return next(createHttpError(404, 'Book not found'));
   }
+
   // Check access
   const _req = req as AuthRequest;
   if (book.author.toString() !== _req.userId) {
@@ -129,6 +130,7 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
     {
       _id: bookId,
     },
+
     {
       title: title,
       description: description,
@@ -136,6 +138,7 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
       coverImage: completeCoverImage ? completeCoverImage : book.coverImage,
       file: completeFileName ? completeFileName : book.file,
     },
+
     { new: true }
   );
 
