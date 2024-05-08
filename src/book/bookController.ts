@@ -145,4 +145,76 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
   res.json(updatedBook);
 };
 
-export { createBook, updateBook };
+const listBook = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const books = await bookModel.find();
+
+    if (!books) {
+      return next(createHttpError(401, 'No Books in The Store'));
+    }
+
+    res.status(200).json({
+      data: { books },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getSingleBook = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const bookId = req.params.id;
+
+  try {
+    const book = await bookModel
+      .findOne({ _id: bookId })
+      // populate author field
+      .populate('author', 'name');
+    if (!book) {
+      return next(createHttpError(404, 'Book not found.'));
+    }
+
+    return res.json(book);
+  } catch (err) {
+    return next(createHttpError(500, 'Error while getting a book'));
+  }
+};
+
+const deleteBook = async (req: Request, res: Response, next: NextFunction) => {
+  const bookId = req.params.id;
+
+  const book = await bookModel.findOne({ _id: bookId });
+  if (!book) {
+    return next(createHttpError(404, 'Book not found'));
+  }
+
+  // Check Access
+  const _req = req as AuthRequest;
+  if (book.author.toString() !== _req.userId) {
+    return next(createHttpError(403, 'You can not update others book.'));
+  }
+  // book-covers/dkzujeho0txi0yrfqjsm
+  // https://res.cloudinary.com/degzfrkse/image/upload/v1712590372/book-covers/u4bt9x7sv0r0cg5cuynm.png
+
+  const coverFileSplits = book.coverImage.split('/');
+  const coverImagePublicId =
+    coverFileSplits.at(-2) + '/' + coverFileSplits.at(-1)?.split('.').at(-2);
+
+  const bookFileSplits = book.file.split('/');
+  const bookFilePublicId = bookFileSplits.at(-2) + '/' + bookFileSplits.at(-1);
+  console.log('bookFilePublicId', bookFilePublicId);
+  // todo: add try error block
+  await cloudinary.uploader.destroy(coverImagePublicId);
+  await cloudinary.uploader.destroy(bookFilePublicId, {
+    resource_type: 'raw',
+  });
+
+  await bookModel.deleteOne({ _id: bookId });
+
+  return res.sendStatus(204);
+};
+
+export { createBook, updateBook, listBook, getSingleBook, deleteBook };
